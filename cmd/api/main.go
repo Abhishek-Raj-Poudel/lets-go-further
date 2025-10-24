@@ -22,43 +22,24 @@ type application struct {
 }
 
 func main() {
-	// Declare an instance of the config struct.
 	var cfg config
 
-	// syntax  flag.IntVar(p *int, name string, value int, usage string)
-	// your storing the cfg.env value in pointer p
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 
-	// syntax  flag.StringVar(p *string, name string, value string, usage string)
-	// your storing the cfg.env value in pointer p
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development | staging | production)")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	// We use &application{} because we want app to be a pointer to an application struct.
-	// That’s so we can later pass app around efficiently (not copy the whole struct) and modify its contents inside methods.
-	// and logger doesn't need an & because log.New returns a pointer (check through intellicence)
-	// TLDR
-	//Use & when the function needs a pointer and you only have a value.
-	//Don’t use & if you already have a pointer returned by something like log.New.
 	app := &application{
 		config: cfg,
 		logger: logger,
 	}
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Server running on port %d\nVersion: %s\n", app.config.port, version)
-	})
-	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
-	// Declare a HTTP server with some sensible timeout settings, which listens on the
-	// port provided in the config struct and uses the servemux we created above as the
-	// handler.
+	//basically refactored routes to keep main.go clean
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      mux,
+		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
