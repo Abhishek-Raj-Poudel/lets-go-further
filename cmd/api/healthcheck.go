@@ -8,7 +8,7 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	// Declare an envelope map containing the data for the response. Notice that the way
 	// we've constructed this means the environment and version data will now be nested
 	// under a system_info key in the JSON response.
-	env := enevlop{
+	env := envelop{
 		"status": "available",
 		"system_info": map[string]string{
 			"environment": app.config.env,

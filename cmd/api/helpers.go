@@ -10,7 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type enevlop map[string]any
+type envelop map[string]any
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
 
