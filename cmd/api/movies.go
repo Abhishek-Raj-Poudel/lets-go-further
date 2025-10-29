@@ -3,36 +3,53 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
+	"time"
 
-	"github.com/julienschmidt/httprouter"
+	"greenlight.abhishekrajpoudel.com.np/internal/data"
 )
 
-// Add a createMovieHandler for the "POST /v1/movies" endpoint. For now we simply
-// return a plain-text placeholder response.
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "create a new movie")
-}
+	var input struct {
+		Title   string   `json:"title"`
+		Year    int32    `json:"year"`
+		Runtime int32    `json:"runtime"`
+		Genres  []string `json:"genres"`
+	}
 
-func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
-	// When httprouter is parsing a request, any interpolated URL parameters will be
-	// stored in the request context. We can use the ParamsFromContext() function to
-	// retrieve a slice containing these parameter names and values.
-	params := httprouter.ParamsFromContext(r.Context())
-	// We can then use the ByName() method to get the value of the "id" parameter from
-	// the slice. In our project all movies will have a unique positive integer ID, but
-	// the value returned by ByName() is always a string. So we try to convert it to a
-	// base 10 integer (with a bit size of 64). If the parameter couldn't be converted,
-	// or is less than 1, we know the ID is invalid so we use the http.NotFound()
-	// function to return a 404 Not Found response.
-	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
-
-	if err != nil || id < 1 {
-		http.NotFound(w, r)
+	// Use the new readJSON() helper to decode the request body into the input struct.
+	// If this returns an error we send the client the error message along with a 400
+	// Bad Request status code, just like before.
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	// Otherwise, interpolate the movie ID in a placeholder response.
+	fmt.Fprintf(w, "%+v\n", input)
+}
 
-	fmt.Fprintf(w, "show the details of movie %d\n", id)
+func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
+
+	id, err := app.readIDParam(r)
+	if err != nil {
+		// Use the new notFoundResponse() helper.
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	movie := data.Movie{
+		ID:        id,
+		CreatedAt: time.Now(),
+		Title:     "Casablanca",
+		Runtime:   102,
+		Genres:    []string{"drama", "romance", "war"},
+		Version:   1,
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelop{"movie": movie}, nil)
+
+	if err != nil {
+		// Use the new serverErrorResponse() helper.
+		app.serverErrorResponse(w, r, err)
+	}
 }
