@@ -1,13 +1,36 @@
 package data
 
 import (
+	"database/sql"
 	"time"
 
 	"greenlight.abhishekrajpoudel.com.np/internal/validator"
 )
 
-// NOTE: It’s crucial to point out here that all the fields in our Movie struct are exported (i.e. start with a capital letter),which is necessary for them to be visible to Go’s encoding/json package.
-// Any fields which aren’t exported won’t be included when encoding a struct to JSON.
+// Define a MovieModel struct type which wraps a sql.DB connection pool.
+type MovieModel struct {
+	DB *sql.DB
+}
+
+// Define a MovieModel struct type which wraps a sql.DB connection pool.
+func (m MovieModel) Insert(movie *Movie) error {
+	return nil
+}
+
+// Define a MovieModel struct type which wraps a sql.DB connection pool.
+func (m MovieModel) Get(id int64) (*Movie, error) {
+	return nil, nil
+}
+
+// Add a placeholder method for updating a specific record in the movies table.
+func (m MovieModel) Update(movie *Movie) error {
+	return nil
+}
+
+func (m MovieModel) Delete(id int64) error {
+	return nil
+}
+
 type Movie struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"-"`
